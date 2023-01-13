@@ -24,7 +24,7 @@ func main() {
 	r.HandleFunc("/todos", GetTodos).Methods(http.MethodGet)
 	r.HandleFunc("/todos", CreateTodo).Methods(http.MethodPost)
 	r.HandleFunc("/todos/{id}", UpdateTodo).Methods(http.MethodPut)
-	// r.HandleFunc("/todos/{id}", DeleteTodo).Methods(http.MethodDelete)
+	r.HandleFunc("/todos/{id}", DeleteTodo).Methods(http.MethodDelete)
 
 	log.Println("Listening on " + baseURL)
 	http.ListenAndServe(baseURL, r)
@@ -65,4 +65,20 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func DeleteTodo(w http.ResponseWriter, r *http.Request)
+func DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	//Get Path param
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	i, _ := strconv.Atoi(id)
+
+	//Search from todos
+	for idx, t := range Todos {
+		id := t.ID
+		if id == i {
+			Todos = append(Todos[:idx], Todos[idx+1:]...)
+		}
+	}
+
+	w.Write([]byte("success delete"))
+}
