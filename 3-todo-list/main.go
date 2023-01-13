@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 )
 
 type Todo struct {
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -23,7 +23,8 @@ func main() {
 
 	r.HandleFunc("/todos", GetTodos).Methods(http.MethodGet)
 	r.HandleFunc("/todos", CreateTodo).Methods(http.MethodPost)
-	r.HandleFunc("/todos/{idx}", UpdateTodo).Methods(http.MethodPut)
+	r.HandleFunc("/todos/{id}", UpdateTodo).Methods(http.MethodPut)
+	// r.HandleFunc("/todos/{id}", DeleteTodo).Methods(http.MethodDelete)
 
 	log.Println("Listening on " + baseURL)
 	http.ListenAndServe(baseURL, r)
@@ -49,18 +50,19 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	//Get Path param
 	vars := mux.Vars(r)
-	idx := vars["idx"]
-	fmt.Println("index =" + idx)
+	id := vars["id"]
 
 	//Read Body
 	var t Todo
 	decoded := json.NewDecoder(r.Body)
 	decoded.Decode(&t)
 
-	i, _ := strconv.Atoi(idx)
+	i, _ := strconv.Atoi(id)
 
 	Todos[i] = &t
 
 	w.Write([]byte("success update"))
 
 }
+
+// func DeleteTodo(w http.ResponseWriter, r *http.Request)
