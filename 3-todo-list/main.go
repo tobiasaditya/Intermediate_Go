@@ -58,13 +58,20 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	decoded.Decode(&inputTodo)
 
 	//Search from todos
+	isFound := false
 	for idx, t := range Todos {
 		if t.ID == id {
 			Todos[idx] = &inputTodo
+			isFound = true
+			break
 		}
 	}
-
-	w.Write([]byte("success update"))
+	if isFound {
+		w.Write([]byte("success update"))
+	} else {
+		w.WriteHeader(404)
+		w.Write([]byte("data not found"))
+	}
 
 }
 
@@ -75,11 +82,20 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(vars["id"])
 
 	//Search from todos
+	isFound := false
 	for idx, t := range Todos {
 		if t.ID == id {
 			Todos = append(Todos[:idx], Todos[idx+1:]...)
+			isFound = true
+			break
 		}
 	}
 
-	w.Write([]byte("success delete"))
+	if isFound {
+		w.Write([]byte("success delete"))
+	} else {
+		w.WriteHeader(404)
+		w.Write([]byte("data not found"))
+	}
+
 }
