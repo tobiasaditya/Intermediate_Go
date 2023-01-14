@@ -23,7 +23,6 @@ type Todo struct {
 	Name string `json:"name"`
 }
 
-var Todos []*Todo = []*Todo{}
 var coll *mongo.Collection
 
 const baseURL string = "localhost:8080"
@@ -195,15 +194,6 @@ func GetByID(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
-}
-
-func getIndexByID(id int) int {
-	for idx, t := range Todos {
-		if t.ID == id {
-			return idx
-		}
-	}
-	return -1
 }
 
 func getByID(id int) (Todo, error) {
