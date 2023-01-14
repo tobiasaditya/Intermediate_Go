@@ -14,7 +14,7 @@ type Todo struct {
 	Name string `json:"name"`
 }
 
-var Todos []*Todo
+var Todos []*Todo = []*Todo{}
 
 const baseURL string = "localhost:8080"
 
@@ -50,16 +50,19 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 
 	//Get Path param
 	vars := mux.Vars(r)
-	id := vars["id"]
+	id, _ := strconv.Atoi(vars["id"])
 
 	//Read Body
-	var t Todo
+	var inputTodo Todo
 	decoded := json.NewDecoder(r.Body)
-	decoded.Decode(&t)
+	decoded.Decode(&inputTodo)
 
-	i, _ := strconv.Atoi(id)
-
-	Todos[i] = &t
+	//Search from todos
+	for idx, t := range Todos {
+		if t.ID == id {
+			Todos[idx] = &inputTodo
+		}
+	}
 
 	w.Write([]byte("success update"))
 
@@ -68,14 +71,12 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	//Get Path param
 	vars := mux.Vars(r)
-	id := vars["id"]
 
-	i, _ := strconv.Atoi(id)
+	id, _ := strconv.Atoi(vars["id"])
 
 	//Search from todos
 	for idx, t := range Todos {
-		id := t.ID
-		if id == i {
+		if t.ID == id {
 			Todos = append(Todos[:idx], Todos[idx+1:]...)
 		}
 	}
