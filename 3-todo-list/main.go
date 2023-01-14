@@ -22,9 +22,10 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/todos", GetTodos).Methods(http.MethodGet)
-	r.HandleFunc("/todos", CreateTodo).Methods(http.MethodPost)
-	r.HandleFunc("/todos/{id}", UpdateTodo).Methods(http.MethodPut)
-	r.HandleFunc("/todos/{id}", DeleteTodo).Methods(http.MethodDelete)
+	r.HandleFunc("/todo/{id}", GetByID).Methods(http.MethodGet)
+	r.HandleFunc("/todo", CreateTodo).Methods(http.MethodPost)
+	r.HandleFunc("/todo/{id}", UpdateTodo).Methods(http.MethodPut)
+	r.HandleFunc("/todo/{id}", DeleteTodo).Methods(http.MethodDelete)
 
 	log.Println("Listening on " + baseURL)
 	http.ListenAndServe(baseURL, r)
@@ -58,20 +59,16 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	decoded.Decode(&inputTodo)
 
 	//Search from todos
-	isFound := false
-	for idx, t := range Todos {
-		if t.ID == id {
-			Todos[idx] = &inputTodo
-			isFound = true
-			break
-		}
-	}
-	if isFound {
-		w.Write([]byte("success update"))
-	} else {
-		w.WriteHeader(404)
+	idx := getIndexByID(id)
+
+	if idx == -1 {
 		w.Write([]byte("data not found"))
 	}
+
+	//Update todo at found index
+	Todos[idx] = &inputTodo
+
+	w.Write([]byte("success update"))
 
 }
 
@@ -82,20 +79,47 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(vars["id"])
 
 	//Search from todos
-	isFound := false
+	idx := getIndexByID(id)
+
+	if idx == -1 {
+		w.Write([]byte("data not found"))
+		return
+	}
+
+	//Delete data at found index
+	Todos = append(Todos[:idx], Todos[idx+1:]...)
+
+	w.Write([]byte("success delete"))
+
+}
+
+func GetByID(w http.ResponseWriter, r *http.Request) {
+	//Get Path param
+	vars := mux.Vars(r)
+
+	id, _ := strconv.Atoi(vars["id"])
+
+	//Search from todos
+	idx := getIndexByID(id)
+
+	if idx == -1 {
+		w.Write([]byte("data not found"))
+		return
+	}
+
+	//Get data and marshal
+	foundData := Todos[idx]
+	data, _ := json.Marshal(foundData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
+}
+
+func getIndexByID(id int) int {
 	for idx, t := range Todos {
 		if t.ID == id {
-			Todos = append(Todos[:idx], Todos[idx+1:]...)
-			isFound = true
-			break
+			return idx
 		}
 	}
-
-	if isFound {
-		w.Write([]byte("success delete"))
-	} else {
-		w.WriteHeader(404)
-		w.Write([]byte("data not found"))
-	}
-
+	return -1
 }
