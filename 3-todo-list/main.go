@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	_ "3-todo-list/docs"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Todo struct {
@@ -18,6 +24,7 @@ type Todo struct {
 }
 
 var Todos []*Todo = []*Todo{}
+var coll *mongo.Collection
 
 const baseURL string = "localhost:8080"
 
@@ -27,6 +34,27 @@ const baseURL string = "localhost:8080"
 // @host localhost:8080
 // @BasePath /
 func main() {
+
+	//Set up database
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+	uri := os.Getenv("MONGODB_URI")
+	if uri == "" {
+		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+	}
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+	log.Println("Success connected to MongoDB")
+	coll = client.Database("go_intermediate").Collection("todo")
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/todos", GetTodos).Methods(http.MethodGet)
@@ -48,7 +76,18 @@ func main() {
 // @Success 200 {array} string
 // @Router /todos [get]
 func GetTodos(w http.ResponseWriter, r *http.Request) {
-	data, _ := json.Marshal(Todos)
+	//Get to database
+	var todos []Todo
+	cursor, err := coll.Find(context.TODO(), bson.D{})
+	if err != nil {
+		panic(err)
+	}
+	err = cursor.All(context.TODO(), &todos)
+	if err != nil {
+		panic(err)
+	}
+
+	data, _ := json.Marshal(todos)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
 }
@@ -68,7 +107,14 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 	decoded.Decode(&t)
 
 	//Append ke todos
-	Todos = append(Todos, &t)
+	//Save to DB
+	result, err := coll.InsertOne(context.TODO(), t)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(result)
+
+	// Todos = append(Todos, &t)
 	w.Write([]byte("success add todo"))
 }
 
@@ -94,14 +140,7 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	decoded.Decode(&inputTodo)
 
 	//Search from todos
-	idx := getIndexByID(id)
-
-	if idx == -1 {
-		w.Write([]byte("data not found"))
-	}
-
-	//Update todo at found index
-	Todos[idx] = &inputTodo
+	updateByID(id, inputTodo)
 
 	w.Write([]byte("success update"))
 
@@ -123,16 +162,7 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(vars["id"])
 
 	//Search from todos
-	idx := getIndexByID(id)
-
-	if idx == -1 {
-		w.Write([]byte("data not found"))
-		return
-	}
-
-	//Delete data at found index
-	Todos = append(Todos[:idx], Todos[idx+1:]...) //...ellipsis similar to **args in python
-
+	deleteByID(id)
 	w.Write([]byte("success delete"))
 
 }
@@ -153,16 +183,15 @@ func GetByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(vars["id"])
 
 	//Search from todos
-	idx := getIndexByID(id)
+	foundTodo, err := getByID(id)
 
-	if idx == -1 {
+	if err != nil {
 		w.Write([]byte("data not found"))
 		return
 	}
 
 	//Get data and marshal
-	foundData := Todos[idx]
-	data, _ := json.Marshal(foundData)
+	data, _ := json.Marshal(foundTodo)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
@@ -175,4 +204,37 @@ func getIndexByID(id int) int {
 		}
 	}
 	return -1
+}
+
+func getByID(id int) (Todo, error) {
+	var t Todo
+	filter := bson.D{{Key: "id", Value: id}}
+	err := coll.FindOne(context.TODO(), filter).Decode(&t)
+	if err != nil {
+		return t, err
+	}
+
+	return t, nil
+}
+
+func updateByID(id int, todo Todo) {
+
+	filter := bson.D{{Key: "id", Value: id}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "name", Value: todo.Name}, {Key: "id", Value: todo.ID}}}}
+	_, err := coll.UpdateOne(context.TODO(), filter, update)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+}
+
+func deleteByID(id int) {
+	filter := bson.D{{Key: "id", Value: id}}
+	_, err := coll.DeleteOne(context.TODO(), filter)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 }
