@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
+	"github.com/antonlindstrom/pgstore"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 )
@@ -22,9 +25,24 @@ func newCookieStore() *sessions.CookieStore {
 	return store
 }
 
+func newPostgresStore() *pgstore.PGStore {
+	url := "postgres://postgresuser:postgrespassword@127.0.0.1:5432/postgres?sslmode=disable"
+	authKey := []byte("my-auth-key-very-secret")
+	encryptionKey := []byte("my-encryption-key-very-secret123")
+
+	store, err := pgstore.NewPGStore(url, authKey, encryptionKey)
+	if err != nil {
+		log.Println("ERROR", err)
+		os.Exit(0)
+	}
+
+	return store
+}
+
 func main() {
 	r := echo.New()
-	store := newCookieStore()
+	// store := newCookieStore()
+	store := newPostgresStore()
 	r.GET("/set", func(ctx echo.Context) error {
 		session, err := store.Get(ctx.Request(), SESSION_ID)
 		if err != nil {
