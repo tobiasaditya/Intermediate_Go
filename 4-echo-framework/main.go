@@ -28,6 +28,11 @@ var ActionAbout = echo.WrapHandler(
 	),
 )
 
+type User struct {
+	Name  string `json:"name" form:"name" query:"name"`
+	Email string `json:"email" form:"email" query:"email"`
+}
+
 func main() {
 	r := echo.New()
 
@@ -78,9 +83,24 @@ func main() {
 		return ctx.String(http.StatusOK, data)
 	})
 
+	//Wrap handler
 	r.GET("/action/index", echo.WrapHandler(http.HandlerFunc(ActionIndex)))
 	r.GET("/action/home", echo.WrapHandler(ActionHome))
 	r.GET("/action/about", ActionAbout)
+
+	//Static
+	r.Static("/static", "assets")
+
+	//Parsing payload
+	r.Any("/user", func(ctx echo.Context) error {
+		u := new(User)
+		err := ctx.Bind(u)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(http.StatusOK, u)
+	})
 
 	r.Start("localhost:8080")
 }
