@@ -54,5 +54,15 @@ func main() {
 
 	})
 
+	r.GET("/delete", func(ctx echo.Context) error {
+		session, err := store.Get(ctx.Request(), SESSION_ID)
+		if err != nil {
+			ctx.String(http.StatusInternalServerError, err.Error())
+		}
+		session.Options.MaxAge = -1 //forced to be expired
+		session.Save(ctx.Request(), ctx.Response())
+		return ctx.Redirect(http.StatusTemporaryRedirect, "/get")
+	})
+
 	r.Start("localhost:8080")
 }
