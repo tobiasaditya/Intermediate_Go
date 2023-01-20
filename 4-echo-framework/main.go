@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo"
 )
 
@@ -29,12 +30,23 @@ var ActionAbout = echo.WrapHandler(
 )
 
 type User struct {
-	Name  string `json:"name" form:"name" query:"name"`
-	Email string `json:"email" form:"email" query:"email"`
+	Name  string `json:"name" form:"name" query:"name" validate:"required"`
+	Email string `json:"email" form:"email" query:"email" validate:"required,email"`
+	Age   int    `json:"age" validate:"gte=0,lte=80"`
+}
+
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	return cv.validator.Struct(i)
 }
 
 func main() {
 	r := echo.New()
+
+	r.Validator = &CustomValidator{validator: validator.New()}
 
 	r.GET("/index", func(ctx echo.Context) error {
 		data := "Hello from /index"
@@ -96,6 +108,10 @@ func main() {
 		u := new(User)
 		err := ctx.Bind(u)
 		if err != nil {
+			return err
+		}
+
+		if err = ctx.Validate(u); err != nil {
 			return err
 		}
 
