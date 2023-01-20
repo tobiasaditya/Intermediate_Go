@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -36,6 +37,21 @@ func main() {
 			ctx.String(http.StatusInternalServerError, err.Error())
 		}
 		return ctx.String(http.StatusOK, "session set")
+	})
+
+	r.GET("/get", func(ctx echo.Context) error {
+		session, err := store.Get(ctx.Request(), SESSION_ID)
+		if err != nil {
+			ctx.String(http.StatusInternalServerError, err.Error())
+		}
+
+		if len(session.Values) == 0 {
+			return ctx.String(http.StatusOK, "empty values for sessions")
+		}
+
+		data := fmt.Sprintf("%s %s", session.Values["message1"], session.Values["message2"])
+		return ctx.String(http.StatusOK, data)
+
 	})
 
 	r.Start("localhost:8080")
