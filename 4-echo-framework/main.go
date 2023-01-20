@@ -54,23 +54,28 @@ func main() {
 		if !ok {
 			report = echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		castedObject, ok := err.(validator.ValidationErrors)
-		if ok {
-			for _, err := range castedObject {
-				switch err.Tag() {
-				case "required":
-					report.Message = fmt.Sprintf("%s is required", err.Field())
-				case "email":
-					report.Message = fmt.Sprintf("%s is not a valid email", err.Field())
-				case "gte":
-					report.Message = fmt.Sprintf("%s must be greater than %s", err.Field(), err.Param())
-				case "lte":
-					report.Message = fmt.Sprintf("%s must be less than %s", err.Field(), err.Param())
-				}
-				break
+		// castedObject, ok := err.(validator.ValidationErrors)
+		// if ok {
+		// 	for _, err := range castedObject {
+		// 		switch err.Tag() {
+		// 		case "required":
+		// 			report.Message = fmt.Sprintf("%s is required", err.Field())
+		// 		case "email":
+		// 			report.Message = fmt.Sprintf("%s is not a valid email", err.Field())
+		// 		case "gte":
+		// 			report.Message = fmt.Sprintf("%s must be greater than %s", err.Field(), err.Param())
+		// 		case "lte":
+		// 			report.Message = fmt.Sprintf("%s must be less than %s", err.Field(), err.Param())
+		// 		}
+		// 		break
 
-			}
+		// 	}
 
+		// }
+
+		errPage := fmt.Sprintf("%d.html", report.Code)
+		if err := ctx.File(errPage); err != nil {
+			ctx.HTML(report.Code, "Error page here")
 		}
 
 		ctx.Logger().Error(report)
