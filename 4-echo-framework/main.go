@@ -48,6 +48,36 @@ func main() {
 
 	r.Validator = &CustomValidator{validator: validator.New()}
 
+	//Error handler
+	r.HTTPErrorHandler = func(err error, ctx echo.Context) {
+		report, ok := err.(*echo.HTTPError)
+		if !ok {
+			report = echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		castedObject, ok := err.(validator.ValidationErrors)
+		if ok {
+			for _, err := range castedObject {
+				switch err.Tag() {
+				case "required":
+					report.Message = fmt.Sprintf("%s is required", err.Field())
+				case "email":
+					report.Message = fmt.Sprintf("%s is not a valid email", err.Field())
+				case "gte":
+					report.Message = fmt.Sprintf("%s must be greater than %s", err.Field(), err.Param())
+				case "lte":
+					report.Message = fmt.Sprintf("%s must be less than %s", err.Field(), err.Param())
+				}
+				break
+
+			}
+
+		}
+
+		ctx.Logger().Error(report)
+		ctx.JSON(report.Code, report)
+
+	}
+
 	r.GET("/index", func(ctx echo.Context) error {
 		data := "Hello from /index"
 		return ctx.String(http.StatusOK, data)
