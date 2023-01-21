@@ -7,7 +7,10 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 )
 
-require github.com/lib/pq v1.10.5 // indirect
+require (
+	github.com/lib/pq v1.10.5 // indirect
+	github.com/rs/cors v1.8.3 // indirect
+)
 
 require (
 	github.com/antonlindstrom/pgstore v0.0.0-20220421113606-e3a6e3fed12a

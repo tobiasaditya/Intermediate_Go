@@ -9,6 +9,7 @@ import (
 	"github.com/antonlindstrom/pgstore"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
+	"github.com/rs/cors"
 )
 
 const SESSION_ID = "test-session-id"
@@ -41,6 +42,16 @@ func newPostgresStore() *pgstore.PGStore {
 
 func main() {
 	r := echo.New()
+
+	//Set up middleware for CORST
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://hacktiv8.com", "https://www.google.com"},
+		AllowedMethods: []string{"POST", "GET"},
+		AllowedHeaders: []string{"Content-Type", "X-CSRF-TOKEN"},
+	})
+
+	r.Use(echo.WrapMiddleware(corsMiddleware.Handler))
+
 	// store := newCookieStore()
 	store := newPostgresStore()
 	r.GET("/set", func(ctx echo.Context) error {
