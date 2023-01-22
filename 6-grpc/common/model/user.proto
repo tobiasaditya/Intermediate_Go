@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-package model;
+package common.model;
 
-option go_package = "6-grpc/model";
+option go_package = "6-grpc/common/model";
+
+import "google/protobuf/empty.proto";
 
 enum UserGender{
     UNDEFINED = 0;
@@ -19,4 +21,10 @@ message User{
 
 message UserList{
     repeated User list = 1;
+}
+
+
+service Users{
+    rpc Register(User) returns (google.protobuf.Empty){}
+    rpc List(google.protobuf.Empty) returns (UserList){}
 }
