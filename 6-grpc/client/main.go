@@ -4,10 +4,12 @@ import (
 	"6-grpc/common/config"
 	"6-grpc/common/model"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func serviceGarage() model.GaragesClient {
@@ -56,5 +58,14 @@ func main() {
 	fmt.Println("=====USER SERVICE TEST======")
 	userService.Register(context.Background(), &user1)
 	userService.Register(context.Background(), &user2)
+	data, err := userService.List(context.Background(), new(emptypb.Empty))
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	resString, err := json.Marshal(data.List)
+
+	log.Println(string(resString))
 
 }
