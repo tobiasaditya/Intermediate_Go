@@ -45,14 +45,23 @@ func main() {
 		Gender:   model.UserGender_UNDEFINED,
 	}
 
-	// garage1 := model.Garage{
-	// 	Id:   "1",
-	// 	Name: "Garage One",
-	// 	Coordinate: &model.GarageCoordinate{
-	// 		Latitude:  1.0,
-	// 		Longitude: 32.0,
-	// 	},
-	// }
+	garage1 := model.Garage{
+		Id:   "1",
+		Name: "Garage One",
+		Coordinate: &model.GarageCoordinate{
+			Latitude:  1.0,
+			Longitude: 11.0,
+		},
+	}
+
+	garage2 := model.Garage{
+		Id:   "2",
+		Name: "Garage Two",
+		Coordinate: &model.GarageCoordinate{
+			Latitude:  2.0,
+			Longitude: 22.0,
+		},
+	}
 
 	userService := serviceUser()
 	fmt.Println("=====USER SERVICE TEST======")
@@ -64,8 +73,29 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	resString, err := json.Marshal(data.List)
+	resString, _ := json.Marshal(data.List)
 
 	log.Println(string(resString))
 
+	//Garage service
+	garageService := serviceGarage()
+	fmt.Println("=====GARAGE SERVICE TEST======")
+	garageService.Add(context.Background(), &model.GarageAndUserId{
+		UserId: user1.Id,
+		Garage: &garage1,
+	})
+
+	garageService.Add(context.Background(), &model.GarageAndUserId{
+		UserId: user2.Id,
+		Garage: &garage2,
+	})
+
+	foundGarageUser, err := garageService.List(context.Background(), &model.GarageUserId{UserId: user1.Id})
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	res2String, _ := json.Marshal(foundGarageUser.List)
+
+	log.Println(string(res2String))
 }
