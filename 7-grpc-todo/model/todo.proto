@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package model;
+
+option go_package = "7-grpc/model";
+
+import "google/protobuf/empty.proto";
+
+message Todo{
+    string id = 1;
+    string name = 2;
+}
+
+message ListTodo{
+    repeated Todo list = 1;
+}
+
+message InputTodoID{
+    string id = 1;
+}
+
+service Todos{
+    rpc CreateTodo(Todo) returns (google.protobuf.Empty){}
+    rpc GetTodos(google.protobuf.Empty) returns (ListTodo){}
+    rpc GetByID(InputTodoID) returns (Todo) {}
+    rpc UpdateTodo(Todo) returns (Todo){}
+    rpc DeleteTodo(InputTodoID) returns (google.protobuf.Empty){}
+}
