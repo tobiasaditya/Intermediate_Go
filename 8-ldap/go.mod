@@ -2,7 +2,10 @@ module 8-ldap
 
 go 1.18
 
-require github.com/labstack/gommon v0.4.0
+require (
+	github.com/gorilla/mux v1.8.0
+	github.com/labstack/gommon v0.4.0
+)
 
 require gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 
