@@ -35,10 +35,12 @@ func (s TodosServer) CreateTodo(ctx context.Context, param *model.Todo) (*emptyp
 	return new(emptypb.Empty), err
 }
 func (s TodosServer) GetTodos(ctx context.Context, param *emptypb.Empty) (*model.ListTodo, error) {
-	var todos *model.ListTodo
-	// rows, _ := db.Query(`SELECT * FROM todos`)
-	// rows.Scan(&todos)
-	return todos, nil
+	todos, err := s.repository.GetTodos()
+	if err != nil {
+		return nil, err
+	}
+	data := model.ListTodo{List: todos}
+	return &data, nil
 }
 
 func (s TodosServer) GetByID(ctx context.Context, param *model.InputTodoID) (*model.Todo, error) {

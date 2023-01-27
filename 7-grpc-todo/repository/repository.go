@@ -9,6 +9,7 @@ import (
 type TodoRepository interface {
 	CreateTodo(newTodo *model.Todo) (*model.Todo, error)
 	GetByID(id int32) (*model.Todo, error)
+	GetTodos() ([]*model.Todo, error)
 	UpdateTodo(id int32, updateTodo *model.Todo) (*model.Todo, error)
 	DeleteByID(id int32) error
 }
@@ -39,6 +40,20 @@ func (tr *todoRepository) GetByID(id int32) (*model.Todo, error) {
 	rows := tr.db.QueryRow(`SELECT * FROM todos WHERE id = $1`, id)
 	rows.Scan(&foundTodo.Id, &foundTodo.Name)
 	return &foundTodo, nil
+}
+
+func (tr *todoRepository) GetTodos() ([]*model.Todo, error) {
+	var foundTodos []*model.Todo
+	rows, _ := tr.db.Query(`SELECT * FROM todos`)
+	for rows.Next() {
+		var p model.Todo
+		if err := rows.Scan(&p.Id, &p.Name); err != nil {
+			return nil, err
+		}
+		foundTodos = append(foundTodos, &p)
+	}
+	return foundTodos, nil
+
 }
 func (tr *todoRepository) UpdateTodo(id int32, updateTodo *model.Todo) (*model.Todo, error) {
 	_, err := tr.db.Query(`UPDATE todos SET name = $1 WHERE id = $2`, updateTodo.Name, id)
