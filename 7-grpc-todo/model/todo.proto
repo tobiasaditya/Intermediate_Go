@@ -5,6 +5,7 @@ package model;
 option go_package = "7-grpc/model";
 
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
 
 message Todo{
     int32 id = 1;
@@ -20,9 +21,31 @@ message InputTodoID{
 }
 
 service Todos{
-    rpc CreateTodo(Todo) returns (google.protobuf.Empty){}
-    rpc GetTodos(google.protobuf.Empty) returns (ListTodo){}
-    rpc GetByID(InputTodoID) returns (Todo) {}
-    rpc UpdateTodo(Todo) returns (Todo){}
-    rpc DeleteTodo(InputTodoID) returns (google.protobuf.Empty){}
+    rpc CreateTodo(Todo) returns (google.protobuf.Empty){
+        option (google.api.http) = {
+            post : "/todos",
+            body : "*",
+          };
+    }
+    rpc GetTodos(google.protobuf.Empty) returns (ListTodo){
+        option (google.api.http) = {
+            get : "/todos",
+          };
+    }
+    rpc GetByID(InputTodoID) returns (Todo) {
+        option (google.api.http) = {
+            get : "/todos/{id}",
+          };
+    }
+    rpc UpdateTodo(Todo) returns (Todo){
+        option (google.api.http) = {
+            put : "/todos/{id}",
+            body : "*",
+          };
+    }
+    rpc DeleteTodo(InputTodoID) returns (google.protobuf.Empty){
+        option (google.api.http) = {
+            delete : "/todos/{id}",
+          };
+    }
 }

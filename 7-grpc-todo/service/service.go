@@ -5,12 +5,16 @@ import (
 	"7-grpc-todo/repository"
 	"context"
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -79,5 +83,15 @@ func main() {
 
 	l, _ := net.Listen("tcp", "localhost:7000")
 
+	go func() {
+		mux := runtime.NewServeMux()
+		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+		grpcServerEndpoint := flag.String("grpc-server-endpoint", "localhost:7000", "gRPC server endpoint")
+		_ = model.RegisterTodosHandlerFromEndpoint(context.Background(), mux, *grpcServerEndpoint, opts)
+		log.Println("Starting Todo Server HTTP at 9001 ")
+		http.ListenAndServe(":9001", mux)
+	}()
+
 	server.Serve(l)
+
 }
