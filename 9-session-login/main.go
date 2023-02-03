@@ -37,6 +37,6 @@ func main() {
 	r.POST("/register", userHandler.RegisterHandler)
 	r.POST("/login", userHandler.LoginHandler)
 	r.GET("/login", userHandler.LoginHandler)
-
+	r.POST("/logout", userHandler.LogoutHandler)
 	r.Start(":8000")
 }

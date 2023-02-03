@@ -5,6 +5,7 @@ import (
 	"9-session-login/dto"
 	"9-session-login/entity"
 	"9-session-login/service"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -70,13 +71,34 @@ func (r *UserRouter) LoginHandler(c echo.Context) error {
 }
 
 func (r *UserRouter) HomeHandler(c echo.Context) error {
-	username, err := r.sessionService.GetSession(c, config.SESSION_ID)
+	session, err := r.sessionService.GetSession(c, config.SESSION_ID)
+
 	if err != nil {
 		log.Warn("error when retrieve session")
 		return c.Redirect(http.StatusTemporaryRedirect, "/login")
 	}
+
+	data := session.Values["username"]
+
+	username := fmt.Sprintf("%v", data)
 	return c.Render(http.StatusOK, "home.html", HTMLTemplate{
 		User: entity.User{UserName: username},
 		Err:  "",
 	})
+}
+
+func (r *UserRouter) LogoutHandler(c echo.Context) error {
+	err := r.sessionService.DeleteSession(c, config.SESSION_ID)
+	if err != nil {
+		log.Warn("error deleting session")
+	}
+
+	// session, err := r.sessionService.GetSession(&c, config.SESSION_ID)
+	// if err != nil {
+	// 	return err
+	// }
+	// session.Options.MaxAge = -1 //forced to be expired
+	// session.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusPermanentRedirect, "/login")
 }

@@ -3,12 +3,12 @@ package service
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"9-session-login/config"
 
 	"github.com/antonlindstrom/pgstore"
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 )
 
@@ -35,21 +35,32 @@ func (s *SessionService) SetSession(c echo.Context, sessionID string, username s
 
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		return err
 	}
 	return nil
 }
 
-func (s *SessionService) GetSession(c echo.Context, sessionID string) (string, error) {
+func (s *SessionService) GetSession(c echo.Context, sessionID string) (*sessions.Session, error) {
 	session, err := s.store.Get(c.Request(), sessionID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if len(session.Values) == 0 {
-		return "", fmt.Errorf("empty session")
+		return nil, fmt.Errorf("empty session")
 	}
 
-	data := session.Values["username"]
-	return fmt.Sprintf("%v", data), nil
+	return session, nil
+}
+
+func (s *SessionService) DeleteSession(c echo.Context, sessionID string) error {
+	session, err := s.GetSession(c, sessionID)
+	if err != nil {
+		return err
+	}
+
+	session.Options.MaxAge = -1 //forced to be expired
+	session.Save(c.Request(), c.Response())
+
+	return nil
 }
