@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  postgres:
+  postgres-db:
     image: postgres:13.2-alpine
     environment:
       - POSTGRES_USER=postgresuser
@@ -11,6 +11,20 @@ services:
       - 5432:5432
     networks:
       - hacktiv-backend
+    volumes: 
+      - db:/var/lib/postgresql/data
+  sessions-login:
+    image: session-login:0.0.1
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres-db
+    networks:
+      - hacktiv-backend
 
 networks:
   hacktiv-backend:
+
+volumes:
+  db:
+    driver: local
