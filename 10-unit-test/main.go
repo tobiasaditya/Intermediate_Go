@@ -1,6 +1,10 @@
 package main
 
-import "errors"
+import (
+	"10-unit-test/repository"
+	"errors"
+	"log"
+)
 
 func main() {
 
@@ -19,5 +23,13 @@ func Register(username string, password string) error {
 		return errors.New("password empty")
 	}
 
+	return nil
+}
+
+func RegisterToDB(userRepo repository.IUserRepository, username string, password string) error {
+	if err := userRepo.Register(username, password); err != nil {
+		log.Println(err)
+		return err
+	}
 	return nil
 }
