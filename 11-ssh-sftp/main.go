@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"log"
@@ -43,6 +44,11 @@ func main() {
 	session.Stdout = os.Stdout
 	session.Stdin = os.Stdin
 	session.Stderr = os.Stderr
+
+	var stdin, stdout, stderr bytes.Buffer
+	session.Stdin = &stdin
+	session.Stdout = &stdout
+	session.Stderr = &stderr
 
 	// err = session.Run("pwd")
 	// if err != nil {
