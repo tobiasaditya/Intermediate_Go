@@ -1,6 +1,7 @@
 package main
 
 import (
+	"12-middleware/customMiddleware"
 	"fmt"
 	"net/http"
 	"time"
@@ -8,9 +9,18 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func main() {
+	//Load config
+	viper.AddConfigPath("./config")
+	viper.SetConfigName("config.yaml")
+	viper.SetConfigType("yaml")
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
+	}
+
 	e := echo.New()
 
 	e.Use(middlewareOne)
@@ -27,6 +37,14 @@ func main() {
 		fmt.Println("Masuk /index")
 
 		return ctx.JSON(http.StatusOK, true)
+	})
+
+	private := e.Group("/private")
+	private.Use(middleware.BasicAuth(customMiddleware.BasicAuthMiddleware))
+	private.GET("/index", func(c echo.Context) (err error) {
+		fmt.Println("threeeeee!")
+
+		return c.JSON(http.StatusOK, true)
 	})
 
 	lock := make(chan error)
