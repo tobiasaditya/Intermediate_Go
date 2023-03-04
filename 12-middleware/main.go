@@ -23,15 +23,15 @@ func main() {
 
 	e := echo.New()
 
-	e.Use(middlewareOne)
-	e.Use(middlewareTwo)
-	e.Use(echo.WrapMiddleware(middlewareNonEcho))
+	// e.Use(middlewareOne)
+	// e.Use(middlewareTwo)
+	// e.Use(echo.WrapMiddleware(middlewareNonEcho))
 	e.Use(middlewareLogrus)
 	e.HTTPErrorHandler = errorHandler
 
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}",
-	}))
+	// e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+	// 	Format: "method=${method}, uri=${uri}, status=${status}",
+	// }))
 
 	e.GET("/index", func(ctx echo.Context) error {
 		fmt.Println("Masuk /index")
