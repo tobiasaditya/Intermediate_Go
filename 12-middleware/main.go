@@ -16,6 +16,8 @@ func main() {
 	e.Use(middlewareOne)
 	e.Use(middlewareTwo)
 	e.Use(echo.WrapMiddleware(middlewareNonEcho))
+	e.Use(middlewareLogrus)
+	e.HTTPErrorHandler = errorHandler
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}",
@@ -27,7 +29,19 @@ func main() {
 		return ctx.JSON(http.StatusOK, true)
 	})
 
-	e.Logger.Fatal(e.Start(":9000"))
+	lock := make(chan error)
+	go func(lock chan error) {
+		lock <- e.Start(":9000")
+	}(lock)
+
+	time.Sleep(1 * time.Millisecond)
+	makeLogEntry(nil).Warn("application started without ssl/tls enabled")
+
+	err := <-lock
+	if err != nil {
+		makeLogEntry(nil).Panic("failed to start application")
+	}
+	// e.Logger.Fatal(e.Start(":9000"))
 }
 
 func middlewareOne(next echo.HandlerFunc) echo.HandlerFunc {
@@ -49,6 +63,25 @@ func middlewareNonEcho(next http.Handler) http.Handler {
 		fmt.Println("Masuk middleware non echo")
 		next.ServeHTTP(w, r)
 	})
+}
+
+func middlewareLogrus(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		makeLogEntry(ctx).Info("Incoming request")
+		return next(ctx)
+	}
+}
+
+func errorHandler(err error, ctx echo.Context) {
+	report, ok := err.(*echo.HTTPError)
+	if ok {
+		report.Message = fmt.Sprintf("http error %d - %v", report.Code, report.Message)
+	} else {
+		report = echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	makeLogEntry(ctx).Error(report.Message)
+	ctx.HTML(report.Code, report.Message.(string))
 }
 
 func makeLogEntry(c echo.Context) *logrus.Entry {
