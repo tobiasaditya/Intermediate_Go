@@ -7,7 +7,7 @@
 </head>
 
 <body>
-    <form id="form" action="/sayhello" method="POST">
+    <form id="form" action="/ui/sayhello" method="POST">
         <div>
             <label>Name</label>
             <input type="text" name="name" placeholder="Type your name here">
@@ -27,10 +27,41 @@
             <button type="submit">Submit</button>
         </div>
 
-        <script src="https://code.jquery"
-        
-
-    
     </form>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            $('form').on('submit', function (e){
+                e.preventDefault()
+
+                var self = $(this)
+
+                var formData = {
+                    name: self.find('[name="name"]').val(),
+                    gender: self.find('[name="gender"]').val()
+                }
+
+                var url = self.attr('action')
+                var method = self.attr('method')
+                var payload = JSON.stringify(formData)
+
+                $.ajax({
+                    url:url,
+                    type: method,
+                    contentType: "application/json",
+                    data:payload,
+                    beforeSend: function(req){
+                        var csrfToken = self.find('[name=csrf]').val()
+                        req.setRequestHeader("X-CSRF-TOKEN",csrfToken)
+                    },
+                }).then(function(res){
+                    alert(res)
+                }).catch(function (err){
+                    alert("Error: "+ err.responseText)
+                    console.log('err',err)
+                })
+            })
+        })
+    </script>
 </body>
 </html>
