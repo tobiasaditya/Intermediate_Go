@@ -3,6 +3,7 @@ package main
 import (
 	"12-middleware/customMiddleware"
 	"fmt"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
+
+type M map[string]interface{}
 
 func main() {
 	//Load config
@@ -21,7 +24,17 @@ func main() {
 		panic(err)
 	}
 
+	tmpl := template.Must(template.ParseGlob("./*.html"))
+
 	e := echo.New()
+
+	const CSRFTokenHeader = "X-CSRF-TOKEN"
+	const CSRFKey = "csrf"
+
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "header: " + CSRFTokenHeader,
+		ContextKey:  CSRFKey,
+	}))
 
 	// e.Use(middlewareOne)
 	// e.Use(middlewareTwo)
@@ -45,6 +58,22 @@ func main() {
 		fmt.Println("threeeeee!")
 
 		return c.JSON(http.StatusOK, true)
+	})
+
+	//CSRF
+	e.GET("/ui/index", func(ctx echo.Context) error {
+		data := make(M)
+		data[CSRFKey] = ctx.Get(CSRFKey)
+		return tmpl.Execute(ctx.Response(), data)
+	})
+
+	e.POST("/ui/sayhello", func(ctx echo.Context) error {
+		data := make(M)
+		if err := ctx.Bind(&data); err != nil {
+			return err
+		}
+		message := fmt.Sprintf("hellow %s", data["name"])
+		return ctx.JSON(http.StatusOK, message)
 	})
 
 	lock := make(chan error)
