@@ -35,6 +35,5 @@ func landingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	name := samlsp.AttributeFromContext(r.Context(), "displayName")
-	w.Write([]byte(fmt.Sprintf("Welcome, %s", name)))
+	w.Write([]byte("Hello!"))
 }
