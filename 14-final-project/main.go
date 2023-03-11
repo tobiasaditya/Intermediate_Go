@@ -3,11 +3,17 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 )
+
+const TYPE_NEW_USER = "NEW_USER"
+const TYPE_CHAT = "CHAT"
+const TYPE_DISCONNECT = "DISCONNECT"
 
 type SocketPayload struct {
 	Message string
@@ -56,10 +62,39 @@ func main() {
 		currentConn := WebSocketConnection{Conn: currentSession, Name: name}
 		connections = append(connections, &currentConn)
 
+		go handleIO(&currentConn, connections)
+
 		return nil
 	})
 
 	e.Start(":8080")
+}
+
+func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnection) {
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Println("ERROR", fmt.Sprintf("%v", r))
+	// 	}
+	// }()
+
+	broadcastMessage(currentConn, TYPE_NEW_USER, "")
+
+	for {
+		payload := SocketPayload{}
+		err := currentConn.ReadJSON(&payload)
+		if err != nil {
+			if strings.Contains(err.Error(), "websocket: close") {
+				broadcastMessage(currentConn, TYPE_DISCONNECT, "")
+				// ejectConnection(currentConn)
+				return
+			}
+
+			log.Println("ERROR", err.Error())
+			continue
+		}
+
+		broadcastMessage(currentConn, TYPE_CHAT, payload.Message)
+	}
 }
 
 func broadcastMessage(currentConn *WebSocketConnection, kind, message string) {
