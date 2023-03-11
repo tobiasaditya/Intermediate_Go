@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -42,6 +43,7 @@ func main() {
 		}
 
 		name := ctx.QueryParams().Get("name")
+		fmt.Println(name)
 		currentConn := WebSocketConnection{Conn: currentSession, Name: name}
 		connections = append(connections, &currentConn)
 

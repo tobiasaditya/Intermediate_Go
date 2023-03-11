@@ -29,12 +29,9 @@ app.init = function () {
     var name = prompt('Enter your name please:') || "No name"
     document.querySelector('.username').innerText = name
 
-    var age = prompt('Enter your age please:') || "17"
-    document.querySelector('.age').innerText = age
-
     app.container = document.querySelector('.container')
 
-    app.ws = new WebSocket("ws://localhost:8080/ws?username=" + name + "&age=" + age)
+    app.ws = new WebSocket("ws://localhost:8080/ws?name=" + name)
 
     app.ws.onopen = function () {
         var message = '<b>me</b>: connected'
