@@ -42,10 +42,10 @@ app.init = function () {
         var res = JSON.parse(event.data)
 
         var messsage = ''
-        if (res.Type === 'New User') {
-            message = 'User <b>' + res.From + '</b>: connected'
-        } else if (res.Type === 'Leave') {
-            message = 'User <b>' + res.From + '</b>: disconnected'
+        if (res.Type === 'NEW_USER') {
+            message = '<b>' + res.From + '</b>: connected'
+        } else if (res.Type === 'DISCONNECT') {
+            message = '<b>' + res.From + '</b>: disconnected'
         } else {
             message = '<b>' + res.From + '</b>: ' + res.Message
         }
