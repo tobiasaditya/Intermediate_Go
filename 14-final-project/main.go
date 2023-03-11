@@ -85,7 +85,7 @@ func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnecti
 		if err != nil {
 			if strings.Contains(err.Error(), "websocket: close") {
 				broadcastMessage(currentConn, TYPE_DISCONNECT, "")
-				// ejectConnection(currentConn)
+				ejectConnection(currentConn)
 				return
 			}
 
@@ -95,6 +95,16 @@ func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnecti
 
 		broadcastMessage(currentConn, TYPE_CHAT, payload.Message)
 	}
+}
+
+func ejectConnection(currentConn *WebSocketConnection) {
+	var newConn []*WebSocketConnection
+	for _, conn := range connections {
+		if conn != currentConn {
+			newConn = append(newConn, conn)
+		}
+	}
+	connections = newConn
 }
 
 func broadcastMessage(currentConn *WebSocketConnection, kind, message string) {
