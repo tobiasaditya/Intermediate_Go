@@ -5,6 +5,7 @@ go 1.18
 require github.com/labstack/echo v3.3.10+incompatible
 
 require (
+	github.com/gorilla/websocket v1.5.0
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
