@@ -9,6 +9,15 @@ import (
 	"github.com/labstack/echo"
 )
 
+type SocketPayload struct {
+	Message string
+}
+
+type SocketResponse struct {
+	From    string
+	Type    string
+	Message string
+}
 type WebSocketConnection struct {
 	*websocket.Conn
 	Name string
@@ -51,4 +60,18 @@ func main() {
 	})
 
 	e.Start(":8080")
+}
+
+func broadcastMessage(currentConn *WebSocketConnection, kind, message string) {
+	for _, eachConn := range connections {
+		if eachConn == currentConn {
+			continue
+		}
+
+		eachConn.WriteJSON(SocketResponse{
+			From:    fmt.Sprintf(currentConn.Name),
+			Type:    kind,
+			Message: message,
+		})
+	}
 }
