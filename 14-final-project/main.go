@@ -71,11 +71,11 @@ func main() {
 }
 
 func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnection) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		log.Println("ERROR", fmt.Sprintf("%v", r))
-	// 	}
-	// }()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("ERROR", fmt.Sprintf("%v", r))
+		}
+	}()
 
 	broadcastMessage(currentConn, TYPE_NEW_USER, "")
 
