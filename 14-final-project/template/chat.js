@@ -14,7 +14,7 @@ app.doSendMessage = function () {
         Message: messageRaw
     }));
 
-    var message = '<b>me</b>: ' + messageRaw
+    var message = new Date().toLocaleTimeString() + ' <b>me</b>: ' + messageRaw
     app.print(message)
 
     document.querySelector('.input-message').value = ''
@@ -34,7 +34,7 @@ app.init = function () {
     app.ws = new WebSocket("ws://localhost:8080/ws?name=" + name)
 
     app.ws.onopen = function () {
-        var message = '<b>me</b>: connected'
+        var message = new Date().toLocaleTimeString() + ' <b>me</b>: connected'
         app.print(message)
     }
 
@@ -43,18 +43,18 @@ app.init = function () {
 
         var messsage = ''
         if (res.Type === 'NEW_USER') {
-            message = '<b>' + res.From + '</b>: connected'
+            message = new Date().toLocaleTimeString() + ' <b>' + res.From + '</b>: connected'
         } else if (res.Type === 'DISCONNECT') {
-            message = '<b>' + res.From + '</b>: disconnected'
+            message = new Date().toLocaleTimeString() + ' <b>' + res.From + '</b>: disconnected'
         } else {
-            message = '<b>' + res.From + '</b>: ' + res.Message
+            message = new Date().toLocaleTimeString() + ' <b>' + res.From + '</b>: ' + res.Message
         }
 
         app.print(message)
     }
 
     app.ws.onclose = function () {
-        var message = '<b>me</b>: disconnected'
+        var message = new Date().toLocaleTimeString() + ' <b>me</b>: disconnected'
         app.print(message)
     }
 }
